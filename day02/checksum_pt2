@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+input = File.read("input.txt")
+  .split("\n")
+  .map { |row| row.split("\t").map(&:to_i) }
+
+divisible_pairs = input.map do |row|
+  row.combination(2).find do |first, second|
+    first % second == 0 || second % first == 0
+  end
+end
+
+quotients = divisible_pairs.map { |pair| pair.max / pair.min }
+puts quotients.reduce(0, :+)

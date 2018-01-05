@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+input = File.read("input.txt").split("\n").map { |row| row.split("\t").map(&:to_i) }
+diffs = input.map { |row| row.max - row.min }
+puts diffs.reduce(0, :+)
