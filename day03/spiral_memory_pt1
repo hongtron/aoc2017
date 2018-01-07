@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+
+INPUT = 361527
+DIRS = [:left, :up, :right, :down].freeze
+Coord = Struct.new(:x, :y)
+
+class Turtle
+  attr_reader :coord
+
+  def initialize(grid_size)
+    @grid_size = grid_size
+    @moves = 0
+    @direction_index = 0
+
+    pos = (grid_size - 1) / 2
+    @coord = Coord.new(pos, 0 - pos)
+  end
+
+  def move
+    direction = DIRS[@direction_index]
+    case direction
+      when :up
+        @coord = Coord.new(@coord.x, @coord.y + 1)
+      when :down
+        @coord = Coord.new(@coord.x, @coord.y - 1)
+      when :left
+        @coord = Coord.new(@coord.x - 1, @coord.y)
+      when :right
+        @coord = Coord.new(@coord.x + 1, @coord.y)
+    end
+
+    @moves += 1
+    @direction_index += 1 if @moves % (@grid_size - 1) == 0
+  end
+end
+
+def main
+  odd_square = next_largest_odd_square(INPUT)
+  grid_size = Math.sqrt(odd_square).to_i
+  t = Turtle.new(grid_size)
+
+  current_number = odd_square
+  until current_number == INPUT
+    t.move
+    current_number -= 1
+  end
+
+  puts "distance: #{t.coord.x.abs + t.coord.y.abs}"
+end
+
+def next_largest_odd_square(num)
+  return num if square?(num) && num.odd?
+  next_largest_odd_square(num + 1)
+end
+
+def square?(num)
+  Math.sqrt(num) % 1 == 0
+end
+
+main
