@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+class JumpList
+  attr_reader :list, :jumps_executed
+
+  def initialize
+    @list = File.read("input.txt").split("\n").map { |i| i.to_i }
+    @jump_index = 0
+    @jumps_executed = 0
+  end
+
+  def jump!
+    old_index = @jump_index
+    @jump_index += @list[old_index]
+    @list[old_index] += 1
+    @jumps_executed += 1
+  end
+
+  def escaped?
+    @jump_index >= @list.size
+  end
+end
+
+jl = JumpList.new
+jl.jump! until jl.escaped?
+
+puts jl.jumps_executed
