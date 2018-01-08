@@ -1,0 +1,120 @@
+#!/usr/bin/env ruby
+
+INPUT = 361527
+Coord = Struct.new(:x, :y)
+
+class Grid
+  attr_reader :size
+  attr_reader :contents
+  attr_reader :solution
+
+  def initialize(prev_grid = nil)
+    if prev_grid
+      @size = prev_grid.size + 2
+      mid = @size / 2
+      @origin = Coord.new(mid, mid)
+      @turtle = Turtle.new(@size)
+      padded_prev_grid_contents = Grid.pad(prev_grid.contents) # create nil outer ring to fill
+      assemble_outer_ring(padded_prev_grid_contents)
+    else
+      @size = 1
+      @contents = [[1]]
+    end
+  end
+
+  def assemble_outer_ring(contents)
+    @contents = contents
+    until read_coord(@turtle.coord)
+      populate_coord(@turtle.coord)
+      @turtle.move!
+    end
+  end
+
+  def self.pad(contents)
+    size = contents.size + 2
+    empty_row = Array.new(size)
+    padded_contents = contents.map { |row| [nil] + row + [nil] }
+    padded_contents = [empty_row.dup] + padded_contents + [empty_row.dup]
+  end
+
+  def neighbors(coord)
+    coords = []
+    coords << Coord.new(coord.x - 1, coord.y - 1)
+    coords << Coord.new(coord.x, coord.y - 1)
+    coords << Coord.new(coord.x + 1, coord.y - 1)
+    coords << Coord.new(coord.x - 1, coord.y)
+    coords << Coord.new(coord.x + 1, coord.y)
+    coords << Coord.new(coord.x - 1, coord.y + 1)
+    coords << Coord.new(coord.x, coord.y + 1)
+    coords << Coord.new(coord.x + 1, coord.y + 1)
+
+    coords.select do |c|
+      adjusted_coord = adjust_coord(c)
+      adjusted_coord.x >= 0 && adjusted_coord.y >= 0
+    end
+  end
+
+  def populate_coord(coord)
+    neighbor_values = neighbors(coord)
+      .map { |n| read_coord(n) }
+      .reject { |nv| nv == nil }
+
+    value = neighbor_values.reduce(0, :+)
+    @solution ||= value if value > INPUT
+    set_value(coord, value)
+  end
+
+  def set_value(coord, value)
+    adjusted_coord = adjust_coord(coord)
+    @contents[adjusted_coord.y][adjusted_coord.x] = value
+  end
+
+  def read_coord(coord)
+    adjusted_coord = adjust_coord(coord)
+    @contents.dig(adjusted_coord.y, adjusted_coord.x)
+  end
+
+  def adjust_coord(coord)
+    Coord.new(@origin.x + coord.x, @origin.y - coord.y)
+  end
+end
+
+class Turtle
+  DIRS = [:up, :left, :down, :right].freeze
+  attr_reader :coord
+
+  def initialize(grid_size)
+    @grid_size = grid_size
+    @moves = 0
+    @direction_index = 0
+    if @grid_size == 1
+      @coord = Coord.new(0, 0)
+    else
+      bottom_right = (grid_size - 1) / 2
+      @coord = Coord.new(bottom_right, 0 - bottom_right)
+      move!
+    end
+  end
+
+  def move!
+    direction = DIRS[@direction_index]
+    case direction
+      when :up
+        @coord = Coord.new(@coord.x, @coord.y + 1)
+      when :down
+        @coord = Coord.new(@coord.x, @coord.y - 1)
+      when :left
+        @coord = Coord.new(@coord.x - 1, @coord.y)
+      when :right
+        @coord = Coord.new(@coord.x + 1, @coord.y)
+    end
+
+    @moves += 1
+    @direction_index += 1 if @moves % (@grid_size - 1) == 0
+  end
+end
+
+
+g = Grid.new
+g = Grid.new(g) until g.solution
+puts g.solution
