@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+pws = File.read("input.txt").split("\n")
+secure_pws = pws.select do |pw|
+  pw_atoms = pw.split(" ")
+  pw_atoms.length == pw_atoms.uniq.length
+end
+
+puts secure_pws.size

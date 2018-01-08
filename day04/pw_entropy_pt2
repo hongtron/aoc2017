@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+def valid?(words)
+  words.combination(2).each do |first, second|
+    return false if first.split(//).sort == second.split(//).sort
+  end
+end
+
+pws = File.read("input.txt").split("\n")
+secure_pws = pws.select do |pw|
+  pw_atoms = pw.split(" ")
+  valid?(pw_atoms)
+end
+
+puts secure_pws.size
