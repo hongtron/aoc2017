@@ -1,0 +1,79 @@
+#!/usr/bin/env ruby
+
+require "rspec"
+
+class MemoryStick
+  attr_reader :banks, :reallocations, :cycle_size
+
+  def initialize
+    @banks = File.read("input.txt").split("\t").map { |i| i.to_i }
+    @reallocations = 0
+    @cycle_size = nil
+  end
+
+  def reallocate_most_burdened_bank!
+    value, index = most_burdened_bank
+    @banks[index] = 0
+    until value == 0
+      index += 1
+      index = 0 if index == @banks.size
+      @banks[index] += 1
+      value -= 1
+    end
+
+    @reallocations += 1
+  end
+
+  def most_burdened_bank
+    max = @banks.max
+    [max, @banks.find_index(max)]
+  end
+
+  def balance!
+    previous_states = []
+    until previous_states.include?(@banks)
+      previous_states << @banks.dup
+      reallocate_most_burdened_bank!
+    end
+
+    @cycle_size = @reallocations - previous_states.find_index(@banks)
+  end
+end
+
+RSpec.describe MemoryStick do
+  describe "#most_burdened_bank" do
+    it "chooses the lowest numbered bank in the event of a tie" do
+      expect(File).to receive(:read).and_return("1\t5\t2\t5\t3")
+      m = MemoryStick.new
+      expect(m.most_burdened_bank).to eq([5, 1])
+    end
+  end
+
+  describe "#reallocate_most_burdened_bank!" do
+    it "works" do
+      expect(File).to receive(:read).and_return("0\t2\t7\t0")
+      m = MemoryStick.new
+      m.reallocate_most_burdened_bank!
+      expect(m.banks).to eq([2, 4, 1, 2])
+    end
+  end
+
+  describe "#balance!" do
+    it "works" do
+      expect(File).to receive(:read).and_return("0\t2\t7\t0")
+      m = MemoryStick.new
+      m.balance!
+      expect(m.reallocations).to eq(5)
+      expect(m.cycle_size).to eq(4)
+    end
+  end
+end
+
+def main
+  m = MemoryStick.new
+  m.balance!
+  puts m.cycle_size
+end
+
+
+main if __FILE__ == $0
